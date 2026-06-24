@@ -9,9 +9,14 @@ export default function RepositoriesPage() {
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-medium text-white">Connected Repositories</h2>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors">
+          <a 
+            href={process.env.NEXT_PUBLIC_GITHUB_APP_URL || "https://github.com/apps/codeac-ai-reviewer/installations/new"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors inline-block"
+          >
             Connect New Repository
-          </button>
+          </a>
         </div>
         
         <div className="space-y-4">
