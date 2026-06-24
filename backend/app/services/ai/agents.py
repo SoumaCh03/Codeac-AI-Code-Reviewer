@@ -1,6 +1,8 @@
 import logging
-from typing import TypedDict, List
-from langgraph.graph import StateGraph, END
+from typing import List, TypedDict
+
+from langgraph.graph import END, StateGraph
+
 from .orchestrator import AIOrchestrator
 
 logger = logging.getLogger(__name__)
@@ -43,10 +45,10 @@ def maintainability_agent(state: ReviewState):
 def final_reviewer(state: ReviewState):
     logger.info("LangGraph Node: Final Reviewer")
     all_findings = (
-        state.get("security_findings", []) +
-        state.get("performance_findings", []) +
-        state.get("architecture_findings", []) +
-        state.get("maintainability_findings", [])
+        state.get("security_findings", [])
+        + state.get("performance_findings", [])
+        + state.get("architecture_findings", [])
+        + state.get("maintainability_findings", [])
     )
     report = f"AI Review Complete. Total unique findings: {len(all_findings)}"
     return {"final_report": report}
@@ -81,6 +83,6 @@ def run_review_workflow(diff: str):
         "performance_findings": [],
         "architecture_findings": [],
         "maintainability_findings": [],
-        "final_report": ""
+        "final_report": "",
     }
     return graph.invoke(initial_state)

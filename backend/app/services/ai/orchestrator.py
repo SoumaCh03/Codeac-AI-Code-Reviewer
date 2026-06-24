@@ -1,13 +1,15 @@
-import logging
 import hashlib
-import redis
 import json
+import logging
 from typing import List
 
+import redis
+
 from app.core.config import settings
-from .providers import (
-    BaseLLMProvider, GroqProvider, CerebrasProvider, NvidiaProvider, OllamaProvider, MockProvider, AIFinding
-)
+
+from .providers import (AIFinding, BaseLLMProvider, CerebrasProvider,
+                        GroqProvider, MockProvider, NvidiaProvider,
+                        OllamaProvider)
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ class AIOrchestrator:
             "cerebras": CerebrasProvider,
             "nvidia": NvidiaProvider,
             "ollama": OllamaProvider,
-            "mock": MockProvider
+            "mock": MockProvider,
         }
 
     def _get_provider_instance(self, name: str) -> BaseLLMProvider:
@@ -36,8 +38,7 @@ class AIOrchestrator:
     def _execute_with_fallback(self, method_name: str, diff: str) -> List[AIFinding]:
         """Attempts the default provider, falls back sequentially on failure."""
         primary_name = settings.DEFAULT_PROVIDER
-        fallbacks = ["cerebras", "nvidia",
-                     "ollama"] if settings.ENABLE_FALLBACK else []
+        fallbacks = ["cerebras", "nvidia", "ollama"] if settings.ENABLE_FALLBACK else []
 
         # Remove primary from fallbacks if it's there
         fallbacks = [f for f in fallbacks if f != primary_name]
@@ -46,21 +47,19 @@ class AIOrchestrator:
 
         for provider_name in attempts:
             try:
-                logger.info(
-                    f"Attempting {method_name} using provider: {provider_name}")
+                logger.info(f"Attempting {method_name} using provider: {provider_name}")
                 provider = self._get_provider_instance(provider_name)
                 method = getattr(provider, method_name)
                 findings = method(diff)
                 return findings
             except Exception as e:
-                logger.warning(
-                    f"Provider {provider_name} failed: {e}. Trying next...")
+                logger.warning(f"Provider {provider_name} failed: {e}. Trying next...")
 
         logger.error("All AI providers failed.")
         return []
 
     def _get_cache_key(self, prefix: str, diff: str) -> str:
-        diff_hash = hashlib.md5(diff.encode('utf-8')).hexdigest()
+        diff_hash = hashlib.md5(diff.encode("utf-8")).hexdigest()
         return f"ai_review:{prefix}:{diff_hash}"
 
     def _cached_execute(self, method_name: str, diff: str) -> List[AIFinding]:
@@ -78,8 +77,9 @@ class AIOrchestrator:
 
         if redis_client and findings:
             # Cache for 7 days
-            redis_client.setex(cache_key, 604800, json.dumps(
-                [f.model_dump() for f in findings]))
+            redis_client.setex(
+                cache_key, 604800, json.dumps([f.model_dump() for f in findings])
+            )
 
         return findings
 
@@ -89,7 +89,7 @@ class AIOrchestrator:
             "security": "review_security",
             "performance": "review_performance",
             "architecture": "review_architecture",
-            "maintainability": "review_maintainability"
+            "maintainability": "review_maintainability",
         }
 
         method_name = method_map.get(agent_type)
@@ -101,10 +101,10 @@ class AIOrchestrator:
         # Multi-model consensus for critical findings
         if settings.ENABLE_MULTI_MODEL_REVIEW and findings:
             critical_findings = [
-                f for f in findings if f.severity.lower() in ("critical", "high")]
+                f for f in findings if f.severity.lower() in ("critical", "high")
+            ]
             if critical_findings:
-                logger.info(
-                    "Executing multi-model consensus for critical findings...")
+                logger.info("Executing multi-model consensus for critical findings...")
                 # We do a secondary pass specifically on Groq/Cerebras if possible
                 # For brevity, we simulate the consensus check here.
                 # In production, we'd fire the diff to Cerebras and compare outputs.

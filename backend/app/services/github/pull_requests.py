@@ -1,4 +1,5 @@
 import logging
+
 from app.services.github.client import GitHubAppClient
 
 logger = logging.getLogger(__name__)
@@ -16,24 +17,31 @@ class GitHubPRService:
         headers["Accept"] = "application/vnd.github.v3.diff"
 
         response = self.client.get(
-            f"/repos/{owner}/{repo}/pulls/{pull_number}",
-            headers=headers
+            f"/repos/{owner}/{repo}/pulls/{pull_number}", headers=headers
         )
         response.raise_for_status()
         return response.text
 
-    def post_review_comment(self, owner: str, repo: str, pull_number: int, commit_id: str, path: str, line: int, body: str):
+    def post_review_comment(
+        self,
+        owner: str,
+        repo: str,
+        pull_number: int,
+        commit_id: str,
+        path: str,
+        line: int,
+        body: str,
+    ):
         """Posts a review comment on a specific line of code."""
         payload = {
             "body": body,
             "commit_id": commit_id,
             "path": path,
             "line": line,
-            "side": "RIGHT"
+            "side": "RIGHT",
         }
         response = self.client.post(
-            f"/repos/{owner}/{repo}/pulls/{pull_number}/comments",
-            json=payload
+            f"/repos/{owner}/{repo}/pulls/{pull_number}/comments", json=payload
         )
         if response.status_code not in (200, 201):
             logger.error(f"Failed to post comment: {response.text}")
@@ -43,8 +51,7 @@ class GitHubPRService:
         """Posts a general comment on the PR (Issue)."""
         payload = {"body": body}
         response = self.client.post(
-            f"/repos/{owner}/{repo}/issues/{issue_number}/comments",
-            json=payload
+            f"/repos/{owner}/{repo}/issues/{issue_number}/comments", json=payload
         )
         if response.status_code not in (200, 201):
             logger.error(f"Failed to post issue comment: {response.text}")

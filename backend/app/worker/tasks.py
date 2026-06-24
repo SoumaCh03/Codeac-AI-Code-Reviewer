@@ -1,11 +1,12 @@
-import logging
-import tempfile
-import subprocess
 import json
+import logging
 import os
-from app.worker.celery_app import celery_app
+import subprocess
+import tempfile
+
 from app.services.ai.agents import run_review_workflow
 from app.services.github import GitHubPRService
+from app.worker.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,8 @@ def run_semgrep(diff_text: str) -> list:
 
             result = subprocess.run(
                 ["semgrep", "scan", "--config", "auto", "--json", tmpdir],
-                capture_output=True, text=True
+                capture_output=True,
+                text=True,
             )
 
             if result.stdout:
@@ -54,8 +56,7 @@ def process_pull_request(payload: dict):
         github_service = GitHubPRService(installation_id)
 
         # 1. Fetch Diff
-        diff_text = github_service.get_pr_diff(
-            owner_name, repo_name, pr_number)
+        diff_text = github_service.get_pr_diff(owner_name, repo_name, pr_number)
 
         # 2. Run Static Analysis (Semgrep)
         semgrep_results = run_semgrep(diff_text)
@@ -64,9 +65,9 @@ def process_pull_request(payload: dict):
         # 3. Run AI Workflow
         ai_results = run_review_workflow(diff_text)
         ai_findings = (
-            ai_results.get("security_findings", []) +
-            ai_results.get("performance_findings", []) +
-            ai_results.get("architecture_findings", [])
+            ai_results.get("security_findings", [])
+            + ai_results.get("performance_findings", [])
+            + ai_results.get("architecture_findings", [])
         )
 
         # 4. Compile Report & Post Comments
@@ -80,18 +81,23 @@ def process_pull_request(payload: dict):
         if semgrep_results:
             report_body += "#### Static Analysis (Semgrep)\n"
             for r in semgrep_results:
-                msg = r.get('extra', {}).get('message', '')
-                report_body += f"- **{r.get('extra', {}).get('severity', 'WARNING')}**: {msg}\n"
+                msg = r.get("extra", {}).get("message", "")
+                report_body += (
+                    f"- **{r.get('extra', {}).get('severity', 'WARNING')}**: {msg}\n"
+                )
 
         if not ai_findings and not semgrep_results:
             report_body += "✅ No major issues found in this PR. Looks good to go!\n"
 
-        github_service.post_issue_comment(
-            owner_name, repo_name, pr_number, report_body)
+        github_service.post_issue_comment(owner_name, repo_name, pr_number, report_body)
 
         # In a real app, save to database here using SessionLocal()
         logger.info(f"Successfully processed PR #{pr_number}")
-        return {"status": "success", "ai_findings": len(ai_findings), "semgrep_findings": len(semgrep_results)}
+        return {
+            "status": "success",
+            "ai_findings": len(ai_findings),
+            "semgrep_findings": len(semgrep_results),
+        }
 
     except Exception as e:
         logger.exception(f"Error processing PR: {e}")

@@ -1,6 +1,8 @@
 import uuid
+
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, Integer
+
 from app.models.base import Base
 
 
@@ -8,7 +10,8 @@ class PullRequest(Base):
     __tablename__ = "pull_requests"
 
     repository_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("repositories.id", ondelete="CASCADE"))
+        ForeignKey("repositories.id", ondelete="CASCADE")
+    )
     number: Mapped[int] = mapped_column(Integer, index=True)
     title: Mapped[str] = mapped_column(String)
     state: Mapped[str] = mapped_column(String)  # open, closed, merged
@@ -17,5 +20,4 @@ class PullRequest(Base):
     head_sha: Mapped[str] = mapped_column(String)
 
     repository = relationship("Repository", back_populates="pull_requests")
-    review_sessions = relationship(
-        "ReviewSession", back_populates="pull_request")
+    review_sessions = relationship("ReviewSession", back_populates="pull_request")

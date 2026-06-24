@@ -1,13 +1,13 @@
+from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Boolean
+
 from app.models.base import Base
 
 
 class User(Base):
     __tablename__ = "users"
 
-    email: Mapped[str] = mapped_column(
-        String, unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     github_id: Mapped[int | None] = mapped_column(index=True, unique=True)
     github_login: Mapped[str | None] = mapped_column(String)
     full_name: Mapped[str | None] = mapped_column(String)

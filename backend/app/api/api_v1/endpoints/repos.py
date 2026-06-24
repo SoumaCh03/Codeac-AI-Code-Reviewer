@@ -1,10 +1,12 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import Any
+
 from app.api import deps
-from app.models.user import User
-from app.models.repository import Repository
 from app.core.database import get_db
+from app.models.repository import Repository
+from app.models.user import User
 
 router = APIRouter()
 

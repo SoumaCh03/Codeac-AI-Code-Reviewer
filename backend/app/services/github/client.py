@@ -1,6 +1,8 @@
 import time
-import jwt
+
 import httpx
+import jwt
+
 from app.core.config import settings
 
 
@@ -12,15 +14,10 @@ class GitHubAppClient:
 
     def _generate_jwt(self) -> str:
         if not self.private_key or not self.app_id:
-            raise ValueError(
-                "GITHUB_APP_ID or GITHUB_APP_PRIVATE_KEY is missing")
+            raise ValueError("GITHUB_APP_ID or GITHUB_APP_PRIVATE_KEY is missing")
 
         now = int(time.time())
-        payload = {
-            "iat": now - 60,
-            "exp": now + (10 * 60),
-            "iss": self.app_id
-        }
+        payload = {"iat": now - 60, "exp": now + (10 * 60), "iss": self.app_id}
 
         # Ensure private key is properly formatted (newlines)
         key = self.private_key.replace("\\n", "\n")
@@ -31,13 +28,13 @@ class GitHubAppClient:
         jwt_token = self._generate_jwt()
         headers = {
             "Authorization": f"Bearer {jwt_token}",
-            "Accept": "application/vnd.github.v3+json"
+            "Accept": "application/vnd.github.v3+json",
         }
 
         with httpx.Client() as client:
             response = client.post(
                 f"{self.base_url}/app/installations/{installation_id}/access_tokens",
-                headers=headers
+                headers=headers,
             )
             response.raise_for_status()
             return response.json()["token"]
@@ -48,6 +45,6 @@ class GitHubAppClient:
             base_url=self.base_url,
             headers={
                 "Authorization": f"token {token}",
-                "Accept": "application/vnd.github.v3+json"
-            }
+                "Accept": "application/vnd.github.v3+json",
+            },
         )
