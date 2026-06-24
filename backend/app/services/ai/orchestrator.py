@@ -7,9 +7,15 @@ import redis
 
 from app.core.config import settings
 
-from .providers import (AIFinding, BaseLLMProvider, CerebrasProvider,
-                        GroqProvider, MockProvider, NvidiaProvider,
-                        OllamaProvider)
+from .providers import (
+    AIFinding,
+    BaseLLMProvider,
+    CerebrasProvider,
+    GroqProvider,
+    MockProvider,
+    NvidiaProvider,
+    OllamaProvider,
+)
 
 logger = logging.getLogger(__name__)
 
