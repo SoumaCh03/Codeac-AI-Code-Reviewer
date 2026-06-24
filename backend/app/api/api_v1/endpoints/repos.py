@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import Any
 from app.api import deps
@@ -7,6 +7,7 @@ from app.models.repository import Repository
 from app.core.database import get_db
 
 router = APIRouter()
+
 
 @router.get("/")
 def read_repositories(

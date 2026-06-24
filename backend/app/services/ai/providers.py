@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Type, Dict, Any
+from typing import List
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -8,17 +8,25 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class AIFinding(BaseModel):
-    severity: str = Field(description="One of: critical, high, medium, low, info")
-    category: str = Field(description="The category: security, performance, architecture, maintainability")
+    severity: str = Field(
+        description="One of: critical, high, medium, low, info")
+    category: str = Field(
+        description="The category: security, performance, architecture, maintainability")
     title: str = Field(description="A short, descriptive title of the finding")
-    explanation: str = Field(description="Detailed explanation of why this is an issue")
-    code_reference: str = Field(description="The specific file path and/or snippet where the issue is located")
-    suggested_fix: str = Field(description="Actionable suggested fix with code snippets if relevant")
+    explanation: str = Field(
+        description="Detailed explanation of why this is an issue")
+    code_reference: str = Field(
+        description="The specific file path and/or snippet where the issue is located")
+    suggested_fix: str = Field(
+        description="Actionable suggested fix with code snippets if relevant")
     confidence_score: float = Field(description="Confidence from 0.0 to 1.0")
+
 
 class AIFindingList(BaseModel):
     findings: List[AIFinding]
+
 
 class BaseLLMProvider(ABC):
     def __init__(self, model_name: str, temperature: float = 0.0):
@@ -29,7 +37,6 @@ class BaseLLMProvider(ABC):
     @abstractmethod
     def _initialize_llm(self) -> ChatOpenAI:
         """Initialize the specific LangChain ChatModel with appropriate base_url and api_key."""
-        pass
 
     def _execute_review(self, prompt_messages: List[tuple], diff: str) -> List[AIFinding]:
         prompt = ChatPromptTemplate.from_messages(prompt_messages)
@@ -81,6 +88,7 @@ class GroqProvider(BaseLLMProvider):
             temperature=self.temperature
         )
 
+
 class CerebrasProvider(BaseLLMProvider):
     def _initialize_llm(self) -> ChatOpenAI:
         if not settings.CEREBRAS_API_KEY:
@@ -92,6 +100,7 @@ class CerebrasProvider(BaseLLMProvider):
             temperature=self.temperature
         )
 
+
 class NvidiaProvider(BaseLLMProvider):
     def _initialize_llm(self) -> ChatOpenAI:
         if not settings.NVIDIA_API_KEY:
@@ -99,23 +108,25 @@ class NvidiaProvider(BaseLLMProvider):
         return ChatOpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
             api_key=settings.NVIDIA_API_KEY,
-            model="nvidia/nemotron-3-ultra-550b-a55b", # Use specific model for NVIDIA
+            model="nvidia/nemotron-3-ultra-550b-a55b",  # Use specific model for NVIDIA
             temperature=self.temperature
         )
+
 
 class OllamaProvider(BaseLLMProvider):
     def _initialize_llm(self) -> ChatOpenAI:
         return ChatOpenAI(
             base_url=f"{settings.OLLAMA_BASE_URL}/v1",
-            api_key="ollama", # required but ignored by ollama
+            api_key="ollama",  # required but ignored by ollama
             model=self.model_name,
             temperature=self.temperature
         )
 
+
 class MockProvider(BaseLLMProvider):
     def _initialize_llm(self) -> ChatOpenAI:
         return ChatOpenAI(api_key="mock", model="mock")
-        
+
     def _execute_review(self, prompt_messages: List[tuple], diff: str) -> List[AIFinding]:
         return [
             AIFinding(

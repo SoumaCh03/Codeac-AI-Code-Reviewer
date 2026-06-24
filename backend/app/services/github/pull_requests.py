@@ -1,8 +1,8 @@
 import logging
-from typing import List, Dict, Any
 from app.services.github.client import GitHubAppClient
 
 logger = logging.getLogger(__name__)
+
 
 class GitHubPRService:
     def __init__(self, installation_id: int):
@@ -14,7 +14,7 @@ class GitHubPRService:
         logger.info(f"Fetching diff for {owner}/{repo} PR #{pull_number}")
         headers = self.client.headers.copy()
         headers["Accept"] = "application/vnd.github.v3.diff"
-        
+
         response = self.client.get(
             f"/repos/{owner}/{repo}/pulls/{pull_number}",
             headers=headers
